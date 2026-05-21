@@ -1,10 +1,27 @@
+from uuid import UUID
+
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/leaderboard", tags=["Leaderboard"])
+from app.core.redis import redis_client
 
 
-@router.get("")
-async def get_leaderboard():
+router = APIRouter(
+    prefix="/leaderboard",
+    tags=["Leaderboard"],
+)
+
+
+@router.get("/{auction_id}")
+async def get_leaderboard(auction_id: UUID):
+
+    leaderboard = await redis_client.zrevrange(
+        f"leaderboard:auction:{auction_id}",
+        0,
+        9,
+        withscores=True,
+    )
+
     return {
-        "message": "Redis leaderboard implementation coming next"
+        "auction_id": auction_id,
+        "leaderboard": leaderboard,
     }

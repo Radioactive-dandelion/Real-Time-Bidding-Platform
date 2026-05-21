@@ -2,6 +2,8 @@ from sqlalchemy import Column, String, DateTime, ForeignKey, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 import uuid
+from sqlalchemy import Enum
+from app.core.enums import AuctionStatus
 
 from app.db.base import Base
 
@@ -21,9 +23,14 @@ class Auction(Base):
     reserve_price = Column(Numeric, nullable=False)
     current_price = Column(Numeric, nullable=False)
 
-    status = Column(String, default="scheduled")
+    status = Column(
+    Enum(AuctionStatus),
+    default=AuctionStatus.SCHEDULED,
+    nullable=False,
+)
 
     start_time = Column(DateTime(timezone=True))
     end_time = Column(DateTime(timezone=True))
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
