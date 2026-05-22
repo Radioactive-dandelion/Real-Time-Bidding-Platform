@@ -8,37 +8,62 @@ function BidForm({ auctionId }: Props) {
 
     const [amount, setAmount] = useState("")
 
-    const placeBid = async () => {
+    const [loading, setLoading] = useState(false)
 
-        const response = await fetch(
-            `http://127.0.0.1:8000/auctions/${auctionId}/bids`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    amount: Number(amount),
-                }),
+    const [error, setError] = useState("")
+
+    const [success, setSuccess] = useState("")
+
+    const handleBid = async () => {
+
+        setError("")
+        setSuccess("")
+        setLoading(true)
+
+        try {
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/auctions/${auctionId}/bids`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        amount: Number(amount),
+                    }),
+                }
+            )
+
+            const data = await response.json()
+
+            if (!response.ok) {
+
+                setError(data.detail || "Failed to place bid")
+
+                setLoading(false)
+
+                return
             }
-        )
 
-        if (!response.ok) {
+            setSuccess("Bid placed successfully!")
 
-            const error = await response.json()
+            setAmount("")
 
-            alert(error.detail)
+        } catch (err) {
 
-            return
+            setError("Server error")
+
+        } finally {
+
+            setLoading(false)
         }
-
-        setAmount("")
     }
 
     return (
         <div
             style={{
-                marginTop: "20px",
+                marginTop: "30px",
             }}
         >
 
@@ -48,28 +73,56 @@ function BidForm({ auctionId }: Props) {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 style={{
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: "none",
+                    padding: "12px",
+                    borderRadius: "10px",
+                    border: "1px solid #475569",
                     marginRight: "10px",
-                    width: "200px",
+                    width: "220px",
+                    fontSize: "16px",
                 }}
             />
 
             <button
-                onClick={placeBid}
+                onClick={handleBid}
+                disabled={loading}
                 style={{
-                    padding: "10px 20px",
-                    borderRadius: "8px",
+                    padding: "12px 20px",
+                    borderRadius: "10px",
                     border: "none",
-                    cursor: "pointer",
-                    backgroundColor: "#22c55e",
+                    backgroundColor: "#2563eb",
                     color: "white",
-                    fontWeight: "bold",
+                    fontSize: "16px",
+                    cursor: "pointer",
                 }}
             >
-                Place Bid
+                {loading ? "Submitting..." : "Place Bid"}
             </button>
+
+            {error && (
+
+                <div
+                    style={{
+                        color: "#f87171",
+                        marginTop: "15px",
+                        fontSize: "16px",
+                    }}
+                >
+                    {error}
+                </div>
+            )}
+
+            {success && (
+
+                <div
+                    style={{
+                        color: "#4ade80",
+                        marginTop: "15px",
+                        fontSize: "16px",
+                    }}
+                >
+                    {success}
+                </div>
+            )}
 
         </div>
     )

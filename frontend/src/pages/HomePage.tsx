@@ -17,13 +17,23 @@ function HomePage() {
 
     const [auctions, setAuctions] = useState<Auction[]>([])
 
-    useEffect(() => {
+    const [loading, setLoading] = useState(true)
+
+    const fetchAuctions = () => {
 
         fetch("http://127.0.0.1:8000/auctions/")
             .then((res) => res.json())
             .then((data) => {
+
                 setAuctions(data)
+
+                setLoading(false)
             })
+    }
+
+    useEffect(() => {
+
+        fetchAuctions()
 
     }, [])
 
@@ -39,18 +49,18 @@ function HomePage() {
 
             ws.onmessage = (event) => {
 
-                const data = JSON.parse(event.data)
+                const message = JSON.parse(event.data)
 
-                if (data.event === "NEW_BID") {
+                if (message.event === "NEW_BID") {
 
                     setAuctions((prevAuctions) =>
 
                         prevAuctions.map((a) =>
 
-                            a.id === data.auction_id
+                            a.id === message.auction_id
                                 ? {
                                     ...a,
-                                    current_price: data.amount,
+                                    current_price: message.amount,
                                 }
                                 : a
                         )
@@ -59,7 +69,6 @@ function HomePage() {
             }
 
             sockets.push(ws)
-
         })
 
         return () => {
@@ -70,6 +79,26 @@ function HomePage() {
         }
 
     }, [auctions])
+
+    if (loading) {
+
+        return (
+            <div
+                style={{
+                    backgroundColor: "#0f172a",
+                    minHeight: "100vh",
+                    color: "white",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fontSize: "32px",
+                    fontWeight: "bold",
+                }}
+            >
+                Loading auctions...
+            </div>
+        )
+    }
 
     return (
         <div
@@ -91,7 +120,7 @@ function HomePage() {
                 Real-Time Auctions
             </h1>
 
-            <CreateAuctionForm />
+            <CreateAuctionForm onAuctionCreated={fetchAuctions} />
 
             <div
                 style={{
@@ -99,6 +128,36 @@ function HomePage() {
                     margin: "0 auto",
                 }}
             >
+
+                {auctions.length === 0 && (
+
+                    <div
+                        style={{
+                            textAlign: "center",
+                            marginTop: "100px",
+                            color: "#94a3b8",
+                        }}
+                    >
+
+                        <h2
+                            style={{
+                                fontSize: "36px",
+                                marginBottom: "20px",
+                            }}
+                        >
+                            No auctions yet
+                        </h2>
+
+                        <p
+                            style={{
+                                fontSize: "20px",
+                            }}
+                        >
+                            Create the first auction
+                        </p>
+
+                    </div>
+                )}
 
                 {auctions.map((auction) => (
 
@@ -118,8 +177,8 @@ function HomePage() {
                                 padding: "30px",
                                 marginBottom: "30px",
                                 cursor: "pointer",
-                                transition: "0.2s",
                                 backgroundColor: "#111827",
+                                transition: "0.2s",
                             }}
                         >
 
@@ -154,8 +213,16 @@ function HomePage() {
 
                             <div
                                 style={{
-                                    color: "#94a3b8",
+                                    color:
+                                        auction.status === "ACTIVE"
+                                            ? "#4ade80"
+                                            : auction.status === "CLOSED"
+                                                ? "#f87171"
+                                                : "#facc15",
+
                                     fontSize: "16px",
+                                    marginBottom: "10px",
+                                    fontWeight: "bold",
                                 }}
                             >
                                 Status: {auction.status}

@@ -30,7 +30,7 @@ async def create_auction(
         description=auction_data.description,
         starting_price=auction_data.starting_price,
         reserve_price=auction_data.reserve_price,
-        current_price=auction_data.current_price,
+        current_price=auction_data.starting_price,
         start_time=auction_data.start_time,
         end_time=auction_data.end_time,
         status="scheduled",

@@ -1,6 +1,10 @@
 import { useState } from "react"
 
-function CreateAuctionForm() {
+type Props = {
+    onAuctionCreated?: () => void
+}
+
+function CreateAuctionForm({ onAuctionCreated }: Props) {
 
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
@@ -9,38 +13,67 @@ function CreateAuctionForm() {
     const [startTime, setStartTime] = useState("")
     const [endTime, setEndTime] = useState("")
 
+    const [loading, setLoading] = useState(false)
+
+    const [errorMessage, setErrorMessage] = useState("")
+
     const createAuction = async () => {
 
-        const response = await fetch(
-            "http://127.0.0.1:8000/auctions/",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    title,
-                    description,
-                    starting_price: Number(startingPrice),
-                    reserve_price: Number(reservePrice),
-                    start_time: startTime,
-                    end_time: endTime,
-                }),
+        setErrorMessage("")
+
+        setLoading(true)
+
+        try {
+
+            const response = await fetch(
+                "http://127.0.0.1:8000/auctions/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        starting_price: Number(startingPrice),
+                        reserve_price: Number(reservePrice),
+
+                        start_time: new Date(startTime).toISOString(),
+                        end_time: new Date(endTime).toISOString(),
+                    }),
+                }
+            )
+
+            if (!response.ok) {
+
+                const error = await response.json()
+
+                setErrorMessage(
+                    JSON.stringify(error.detail, null, 2)
+                )
+
+                setLoading(false)
+
+                return
             }
-        )
 
-        if (!response.ok) {
+            setTitle("")
+            setDescription("")
+            setStartingPrice("")
+            setReservePrice("")
+            setStartTime("")
+            setEndTime("")
 
-            const error = await response.json()
+            if (onAuctionCreated) {
+                onAuctionCreated()
+            }
 
-            alert(error.detail)
+        } catch (error) {
 
-            return
+            setErrorMessage("Failed to create auction")
         }
 
-        alert("Auction created!")
-
-        window.location.reload()
+        setLoading(false)
     }
 
     const inputStyle = {
@@ -131,20 +164,43 @@ function CreateAuctionForm() {
 
                 <button
                     onClick={createAuction}
+                    disabled={loading}
                     style={{
                         padding: "14px",
                         borderRadius: "10px",
                         border: "none",
-                        cursor: "pointer",
-                        backgroundColor: "#2563eb",
+                        cursor: loading ? "not-allowed" : "pointer",
+                        backgroundColor: loading
+                            ? "#475569"
+                            : "#2563eb",
+
                         color: "white",
                         fontWeight: "bold",
                         fontSize: "16px",
                         marginTop: "10px",
                     }}
                 >
-                    Create Auction
+                    {loading
+                        ? "Creating..."
+                        : "Create Auction"}
                 </button>
+
+                {errorMessage && (
+
+                    <div
+                        style={{
+                            marginTop: "20px",
+                            color: "#f87171",
+                            backgroundColor: "#450a0a",
+                            padding: "16px",
+                            borderRadius: "10px",
+                            whiteSpace: "pre-wrap",
+                            fontSize: "14px",
+                        }}
+                    >
+                        {errorMessage}
+                    </div>
+                )}
 
             </div>
 

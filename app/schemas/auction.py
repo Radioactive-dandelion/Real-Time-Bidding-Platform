@@ -11,7 +11,6 @@ class AuctionCreate(BaseModel):
 
     starting_price: Decimal
     reserve_price: Decimal
-    current_price: Decimal
 
     start_time: datetime
     end_time: datetime

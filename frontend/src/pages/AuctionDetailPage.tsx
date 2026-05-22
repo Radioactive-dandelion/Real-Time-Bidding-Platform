@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
-import CountdownTimer from "../components/CountdownTimer"
-
 
 import BidForm from "../components/BidForm"
+import CountdownTimer from "../components/CountdownTimer"
 
 type Auction = {
     id: string
@@ -20,6 +19,8 @@ function AuctionDetailPage() {
 
     const [auction, setAuction] = useState<Auction | null>(null)
 
+    const [loading, setLoading] = useState(true)
+
     useEffect(() => {
 
         if (!id) return
@@ -27,7 +28,10 @@ function AuctionDetailPage() {
         fetch(`http://127.0.0.1:8000/auctions/${id}`)
             .then((res) => res.json())
             .then((data) => {
+
                 setAuction(data)
+
+                setLoading(false)
             })
 
     }, [id])
@@ -47,9 +51,6 @@ function AuctionDetailPage() {
         ws.onmessage = (event) => {
 
             const data = JSON.parse(event.data)
-
-            console.log("NEW MESSAGE:")
-            console.log(data)
 
             if (data.event === "NEW_BID") {
 
@@ -80,7 +81,7 @@ function AuctionDetailPage() {
 
     }, [id])
 
-    if (!auction) {
+    if (loading || !auction) {
 
         return (
             <div
@@ -88,10 +89,14 @@ function AuctionDetailPage() {
                     backgroundColor: "#0f172a",
                     minHeight: "100vh",
                     color: "white",
-                    padding: "40px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fontSize: "32px",
+                    fontWeight: "bold",
                 }}
             >
-                Loading...
+                Loading auction...
             </div>
         )
     }
@@ -150,7 +155,7 @@ function AuctionDetailPage() {
 
                 <div
                     style={{
-                        fontSize: "36px",
+                        fontSize: "42px",
                         fontWeight: "bold",
                         marginBottom: "20px",
                     }}
@@ -161,16 +166,45 @@ function AuctionDetailPage() {
                 <div
                     style={{
                         fontSize: "20px",
-                        marginBottom: "40px",
-                        color: "#94a3b8",
+                        marginBottom: "20px",
+                        color:
+                            auction.status === "ACTIVE"
+                                ? "#4ade80"
+                                : auction.status === "CLOSED"
+                                    ? "#f87171"
+                                    : "#facc15",
+
+                        fontWeight: "bold",
                     }}
                 >
                     Status: {auction.status}
                 </div>
 
-                <CountdownTimer endTime={auction.end_time} />
+                <div
+                    style={{
+                        marginBottom: "30px",
+                    }}
+                >
+                    <CountdownTimer endTime={auction.end_time} />
+                </div>
 
-                <BidForm auctionId={auction.id} />
+                {auction.status !== "CLOSED" ? (
+
+                    <BidForm auctionId={auction.id} />
+
+                ) : (
+
+                    <div
+                        style={{
+                            marginTop: "30px",
+                            color: "#f87171",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                        }}
+                    >
+                        Auction closed
+                    </div>
+                )}
 
             </div>
 
