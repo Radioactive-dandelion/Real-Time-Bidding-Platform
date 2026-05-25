@@ -1,6 +1,14 @@
 from contextlib import asynccontextmanager
 
+import asyncio
+
 from fastapi import FastAPI
+
+from fastapi.middleware.cors import CORSMiddleware
+
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.extension import _rate_limit_exceeded_handler
 
 from app.db.base import Base
 from app.db.session import engine
@@ -12,14 +20,13 @@ from app.db.models.bid import Bid
 from app.routers import auctions
 from app.routers import bids
 from app.routers import leaderboard
+from app.routers import auth
 
 from app.websocket.routes import router as websocket_router
 
-import asyncio
-
 from app.services.pubsub import redis_subscriber
 
-from fastapi.middleware.cors import CORSMiddleware
+from app.core.limiter import limiter
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,11 +38,23 @@ async def lifespan(app: FastAPI):
 
     yield
 
+
 app = FastAPI(
     title="Real-Time Bidding Platform",
     lifespan=lifespan,
 )
 
+# slowapi config
+app.state.limiter = limiter
+
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
+)
+
+app.add_middleware(SlowAPIMiddleware)
+
+# cors
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -44,13 +63,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# routers
 app.include_router(auctions.router)
 app.include_router(bids.router)
 app.include_router(leaderboard.router)
-
+app.include_router(auth.router)
 app.include_router(websocket_router)
 
 
 @app.get("/")
 async def root():
-    return {"message": "Auction API running"}
+
+    return {
+        "message": "Auction API running"
+    }

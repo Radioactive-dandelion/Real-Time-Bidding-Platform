@@ -1,13 +1,13 @@
 from uuid import UUID
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.auction import Auction
 from app.db.session import get_db
-
+from app.db.models.user import User
 from app.schemas.auction import AuctionCreate, AuctionResponse
+from app.core.dependencies import get_current_user
 
 from app.schemas.auction import (
     AuctionCreate,
@@ -23,9 +23,11 @@ router = APIRouter(prefix="/auctions", tags=["Auctions"])
 async def create_auction(
     auction_data: AuctionCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     new_auction = Auction(
+        seller_id=current_user.id,
         title=auction_data.title,
         description=auction_data.description,
         starting_price=auction_data.starting_price,

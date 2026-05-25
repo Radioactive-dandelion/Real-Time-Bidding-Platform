@@ -1,29 +1,51 @@
-import {
-    Routes,
-    Route,
-} from "react-router-dom"
+import { Routes, Route } from "react-router-dom"
 
 import HomePage from "./pages/HomePage"
 import AuctionDetailPage from "./pages/AuctionDetailPage"
 
+import LoginPage from "./pages/LoginPage"
+import RegisterPage from "./pages/RegisterPage"
+
+import Navbar from "./components/Navbar"
+
+import ProtectedRoute from "./components/ProtectedRoute"
+
 function App() {
 
     return (
+        <>
 
-        <Routes>
+            <Navbar />
 
-            <Route
-                path="/"
-                element={<HomePage />}
-            />
+            <Routes>
 
-            <Route
-                path="/auction/:id"
-                element={<AuctionDetailPage />}
-            />
+                <Route
+                    path="/"
+                    element={<HomePage />}
+                />
 
-        </Routes>
+               <Route
+                    path="/auction/:id"
+                    element={
+                        <ProtectedRoute>
+                         <AuctionDetailPage />
+                        </ProtectedRoute>
+                    }
+                />
 
+                <Route
+                    path="/login"
+                    element={<LoginPage />}
+                />
+
+                <Route
+                    path="/register"
+                    element={<RegisterPage />}
+                />
+
+            </Routes>
+
+        </>
     )
 }
 
