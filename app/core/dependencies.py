@@ -12,10 +12,8 @@ from app.db.session import get_db
 
 from app.db.models.user import User
 
-from app.core.security import (
-    SECRET_KEY,
-    ALGORITHM,
-)
+from app.core.security import ALGORITHM
+from app.core.config import settings
 
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -37,7 +35,7 @@ async def get_current_user(
 
         payload = jwt.decode(
             token,
-            SECRET_KEY,
+            settings.SECRET_KEY,
             algorithms=[ALGORITHM],
         )
 

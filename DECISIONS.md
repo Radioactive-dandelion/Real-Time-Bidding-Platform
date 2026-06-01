@@ -249,3 +249,36 @@ FastAPI was selected because it provides:
 - excellent WebSocket support
 
 These features make it well-suited for realtime backend systems.
+
+---
+
+# 13. Two-Factor Authentication
+
+## Why is TOTP preferred over SMS-based OTP for your application?
+
+SMS-based OTP was rejected for three reasons:
+
+- **Cost**: The sending of the SMS involves the use of an additional paid service from a third party such as Twilio or AWS SNS. With TOTP, there is no need for any additional services.
+- **SIM swapping**: An attacker is capable of contacting the cellular network, impersonating the target individual, and getting their phone number assigned to another SIM card. In effect, this will render SMS 2FA useless.
+- **Phone number not needed**: TOTP does not necessitate the use of a phone number, just an authenticator application on the user's smartphone.
+
+TOTP does not need to pay any fees; it is more secure and needs no infrastructure other than the shared secret that is stored in the database.
+
+## How do you store the user's TOTP secret in the database? Is it encrypted? Why or why not?
+
+The TOTP secret is stored in the `two_factor_secret` field of the `users` table in Base32 format.
+
+When running this system in production, the TOTP secret would have to be stored in an encrypted way in the database using a key different from the database (such as with AES-256 with a key from the environment or AWS Secrets Manager/HashiCorp Vault). Currently, the secret is stored unencrypted, which is okay in the development phase but will need to be solved before production use.
+
+## What happens if a user loses their phone/uninstalls the authenticator app? What recovery mechanism would you implement in a production version?
+Currently, in case a person cannot use the authenticator application for any reason, he/she will not be able to log into the system. In the real world scenario, the following recovery options should be available:
+
+- **Recovery codes** - one-time recovery codes provided only during the initial set up of two-factor authentication and viewed by a user once. These codes may be used in place of the TOTP code.
+- **Admin recovery** - a helpdesk mechanism involving confirmation of the user’s identity via e-mail or identification documents and subsequent disabling of 2FA by an admin.
+
+## What is valid_window=1 in pyotp and why is it necessary?
+
+`valid_window=1` means that the server considers the code sent from the current 30 seconds window along with the code from one window in the past and one in the future (tolerance period of ±30 seconds).
+
+Such an approach is essential due to the fact that the clocks in the user's device and in the server cannot be synchronized perfectly. The system would refuse to accept codes sent by users with slightly delayed or ahead clocks in case if the check was conducted in a strict way.
+

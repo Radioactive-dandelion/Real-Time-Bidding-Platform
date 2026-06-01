@@ -2,12 +2,11 @@ import { Routes, Route } from "react-router-dom"
 
 import HomePage from "./pages/HomePage"
 import AuctionDetailPage from "./pages/AuctionDetailPage"
-
 import LoginPage from "./pages/LoginPage"
 import RegisterPage from "./pages/RegisterPage"
+import TwoFactorSetupPage from "./pages/TwoFactorSetupPage"
 
 import Navbar from "./components/Navbar"
-
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function App() {
@@ -24,11 +23,11 @@ function App() {
                     element={<HomePage />}
                 />
 
-               <Route
+                <Route
                     path="/auction/:id"
                     element={
                         <ProtectedRoute>
-                         <AuctionDetailPage />
+                            <AuctionDetailPage />
                         </ProtectedRoute>
                     }
                 />
@@ -41,6 +40,15 @@ function App() {
                 <Route
                     path="/register"
                     element={<RegisterPage />}
+                />
+
+                <Route
+                    path="/settings/2fa"
+                    element={
+                        <ProtectedRoute>
+                            <TwoFactorSetupPage />
+                        </ProtectedRoute>
+                    }
                 />
 
             </Routes>

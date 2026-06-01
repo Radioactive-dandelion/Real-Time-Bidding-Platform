@@ -76,6 +76,17 @@ function Navbar() {
                 ) : (
                     <>
 
+                        <Link
+                            to="/settings/2fa"
+                            style={{
+                                color: "#94a3b8",
+                                textDecoration: "none",
+                                fontSize: "16px",
+                            }}
+                        >
+                            2FA Settings
+                        </Link>
+
                         <div
                             style={{
                                 color: "#4ade80",
