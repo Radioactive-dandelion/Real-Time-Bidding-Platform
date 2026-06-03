@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
+import { API_URL, WS_URL } from "../config"
 
 import BidForm from "../components/BidForm"
 import CountdownTimer from "../components/CountdownTimer"
@@ -10,7 +11,9 @@ type Auction = {
     description: string
     current_price: number
     status: string
+    start_time: string
     end_time: string
+    winner_id: string | null
 }
 
 function AuctionDetailPage() {
@@ -18,19 +21,18 @@ function AuctionDetailPage() {
     const { id } = useParams()
 
     const [auction, setAuction] = useState<Auction | null>(null)
-
     const [loading, setLoading] = useState(true)
+    const [winnerId, setWinnerId] = useState<string | null>(null)
 
     useEffect(() => {
 
         if (!id) return
 
-        fetch(`http://127.0.0.1:8000/auctions/${id}`)
+        fetch(`${API_URL}/auctions/${id}`)
             .then((res) => res.json())
             .then((data) => {
-
                 setAuction(data)
-
+                if (data.winner_id) setWinnerId(data.winner_id)
                 setLoading(false)
             })
 
@@ -41,59 +43,55 @@ function AuctionDetailPage() {
         if (!id) return
 
         const ws = new WebSocket(
-            `ws://127.0.0.1:8000/ws/auctions/${id}`
+            `${WS_URL}/ws/auctions/${id}`
         )
 
-        ws.onopen = () => {
-            console.log("WebSocket connected")
-        }
-
         ws.onmessage = (event) => {
-
             const data = JSON.parse(event.data)
 
             if (data.event === "NEW_BID") {
-
                 setAuction((prev) => {
-
                     if (!prev) return prev
+                    return { ...prev, current_price: data.amount }
+                })
+            }
 
+            if (data.event === "AUCTION_CLOSED") {
+                setWinnerId(data.winner_id)
+                setAuction((prev) => {
+                    if (!prev) return prev
                     return {
                         ...prev,
-                        current_price: data.amount,
+                        status: "closed",
+                        current_price: data.final_price,
                     }
                 })
             }
         }
 
-        ws.onerror = (error) => {
-            console.log("WebSocket error")
-            console.log(error)
-        }
-
-        ws.onclose = () => {
-            console.log("WebSocket disconnected")
-        }
-
-        return () => {
-            ws.close()
-        }
+        return () => ws.close()
 
     }, [id])
 
-    if (loading || !auction) {
+    const statusColor = (status: string) => {
+        if (status === "active") return "#3a7a55"
+        if (status === "closed") return "#a03030"
+        if (status === "cancelled") return "#a03030"
+        return "#8a5a20"
+    }
 
+    if (loading || !auction) {
         return (
             <div
                 style={{
-                    backgroundColor: "#0f172a",
+                    backgroundColor: "#fff1d9",
                     minHeight: "100vh",
-                    color: "white",
+                    color: "#7a5b3e",
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    fontSize: "32px",
-                    fontWeight: "bold",
+                    fontSize: "24px",
+                    fontFamily: "'Playfair Display', Georgia, serif",
                 }}
             >
                 Loading auction...
@@ -104,9 +102,9 @@ function AuctionDetailPage() {
     return (
         <div
             style={{
-                backgroundColor: "#0f172a",
+                backgroundColor: "#fff1d9",
                 minHeight: "100vh",
-                color: "white",
+                color: "#7a5b3e",
                 padding: "40px",
             }}
         >
@@ -114,9 +112,9 @@ function AuctionDetailPage() {
             <Link
                 to="/"
                 style={{
-                    color: "#60a5fa",
+                    color: "#a47148",
                     textDecoration: "none",
-                    fontSize: "18px",
+                    fontSize: "16px",
                 }}
             >
                 ← Back to auctions
@@ -124,20 +122,22 @@ function AuctionDetailPage() {
 
             <div
                 style={{
-                    maxWidth: "900px",
+                    maxWidth: "700px",
                     margin: "40px auto",
-                    border: "1px solid #334155",
+                    border: "1px solid #d4b896",
                     borderRadius: "20px",
-                    padding: "40px",
-                    backgroundColor: "#111827",
+                    padding: "48px 40px",
+                    backgroundColor: "#fdf6ec",
+                    boxShadow: "0 4px 20px rgba(122,91,62,0.1)",
                     textAlign: "center",
                 }}
             >
 
                 <h1
                     style={{
-                        fontSize: "48px",
-                        marginBottom: "20px",
+                        fontSize: "40px",
+                        marginBottom: "12px",
+                        fontFamily: "'Playfair Display', Georgia, serif",
                     }}
                 >
                     {auction.title}
@@ -145,9 +145,9 @@ function AuctionDetailPage() {
 
                 <p
                     style={{
-                        fontSize: "22px",
-                        color: "#cbd5e1",
-                        marginBottom: "30px",
+                        fontSize: "18px",
+                        color: "#a47148",
+                        marginBottom: "28px",
                     }}
                 >
                     {auction.description}
@@ -156,8 +156,9 @@ function AuctionDetailPage() {
                 <div
                     style={{
                         fontSize: "42px",
-                        fontWeight: "bold",
-                        marginBottom: "20px",
+                        fontWeight: "700",
+                        marginBottom: "12px",
+                        fontFamily: "'Playfair Display', Georgia, serif",
                     }}
                 >
                     ${auction.current_price}
@@ -165,45 +166,99 @@ function AuctionDetailPage() {
 
                 <div
                     style={{
-                        fontSize: "20px",
-                        marginBottom: "20px",
-                        color:
-                            auction.status === "ACTIVE"
-                                ? "#4ade80"
-                                : auction.status === "CLOSED"
-                                    ? "#f87171"
-                                    : "#facc15",
-
-                        fontWeight: "bold",
+                        fontSize: "12px",
+                        marginBottom: "16px",
+                        color: statusColor(auction.status),
+                        fontWeight: "700",
+                        textTransform: "uppercase" as const,
+                        letterSpacing: "1px",
                     }}
                 >
-                    Status: {auction.status}
+                    {auction.status}
                 </div>
 
-                <div
-                    style={{
-                        marginBottom: "30px",
-                    }}
-                >
-                    <CountdownTimer endTime={auction.end_time} />
+                <div style={{ marginBottom: "32px" }}>
+                    <CountdownTimer
+                        endTime={auction.end_time}
+                        startTime={auction.start_time}
+                        status={auction.status}
+                    />
                 </div>
 
-                {auction.status !== "CLOSED" ? (
+                {auction.status === "active" ? (
 
                     <BidForm auctionId={auction.id} />
+
+                ) : auction.status === "closed" ? (
+
+                    <div
+                        style={{
+                            fontSize: "18px",
+                            fontFamily: "'Playfair Display', Georgia, serif",
+                        }}
+                    >
+                        <div
+                            style={{
+                                color: "#a03030",
+                                fontWeight: "600",
+                                marginBottom: "12px",
+                            }}
+                        >
+                            This auction has ended
+                        </div>
+
+                        {winnerId ? (
+                            <div
+                                style={{
+                                    color: "#3a7a55",
+                                    fontSize: "15px",
+                                    fontWeight: "600",
+                                    padding: "12px",
+                                    backgroundColor: "#eaf4ee",
+                                    borderRadius: "10px",
+                                    border: "1px solid #b0d4bb",
+                                }}
+                            >
+                                Winner determined
+                            </div>
+                        ) : (
+                            <div
+                                style={{
+                                    color: "#a47148",
+                                    fontSize: "15px",
+                                }}
+                            >
+                                No bids were placed
+                            </div>
+                        )}
+                    </div>
+
+                ) : auction.status === "cancelled" ? (
+
+                    <div
+                        style={{
+                            color: "#a03030",
+                            fontSize: "20px",
+                            fontWeight: "600",
+                            fontFamily: "'Playfair Display', Georgia, serif",
+                        }}
+                    >
+                        This auction was cancelled
+                    </div>
 
                 ) : (
 
                     <div
                         style={{
-                            marginTop: "30px",
-                            color: "#f87171",
-                            fontSize: "24px",
-                            fontWeight: "bold",
+                            color: "#8a5a20",
+                            fontSize: "20px",
+                            fontWeight: "600",
+                            fontFamily: "'Playfair Display', Georgia, serif",
                         }}
                     >
-                        Auction closed
+                        Auction has not started yet
                     </div>
+
                 )}
 
             </div>

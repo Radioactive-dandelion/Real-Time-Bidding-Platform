@@ -1,66 +1,78 @@
 import { useEffect, useState } from "react"
+import { Clock } from "lucide-react"
 
 type Props = {
     endTime: string
+    startTime?: string
+    status?: string
 }
 
-function CountdownTimer({ endTime }: Props) {
+function CountdownTimer({ endTime, startTime, status }: Props) {
 
     const calculateTimeLeft = () => {
 
-        const difference =
-            new Date(endTime).getTime() - new Date().getTime()
+        const now = new Date().getTime()
 
-        if (difference <= 0) {
+        if (status === "scheduled" && startTime) {
+            const diff = new Date(startTime).getTime() - now
 
-            return "Auction ended"
+            if (diff <= 0) return { label: "Starting soon", time: "" }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+            const minutes = Math.floor((diff / (1000 * 60)) % 60)
+            const seconds = Math.floor((diff / 1000) % 60)
+
+            const time = days > 0
+                ? `${days}d ${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+                : `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+
+            return { label: "Starts in", time }
         }
 
-        const hours = Math.floor(
-            (difference / (1000 * 60 * 60)) % 24
-        )
+        const diff = new Date(endTime).getTime() - now
 
-        const minutes = Math.floor(
-            (difference / (1000 * 60)) % 60
-        )
+        if (diff <= 0) return { label: "Auction ended", time: "" }
 
-        const seconds = Math.floor(
-            (difference / 1000) % 60
-        )
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+        const minutes = Math.floor((diff / (1000 * 60)) % 60)
+        const seconds = Math.floor((diff / 1000) % 60)
 
-        return `${hours.toString().padStart(2, "0")}:${minutes
-            .toString()
-            .padStart(2, "0")}:${seconds
-            .toString()
-            .padStart(2, "0")}`
+        const time = days > 0
+            ? `${days}d ${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+            : `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+
+        return { label: "Ends in", time }
     }
 
-    const [timeLeft, setTimeLeft] = useState(
-        calculateTimeLeft()
-    )
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft())
 
     useEffect(() => {
-
         const timer = setInterval(() => {
-
             setTimeLeft(calculateTimeLeft())
-
         }, 1000)
-
         return () => clearInterval(timer)
-
-    }, [endTime])
+    }, [endTime, startTime, status])
 
     return (
         <div
             style={{
-                fontSize: "22px",
-                fontWeight: "bold",
-                color: "#facc15",
-                marginTop: "15px",
-            }}
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    fontSize: "14px",
+    color: timeLeft.time ? "#d27427" : "#c84444",
+    marginTop: "10px",
+    justifyContent: "center",
+}}
         >
-            ⏳ Ends in: {timeLeft}
+            <Clock size={14} />
+            <span>
+                {timeLeft.time
+                    ? `${timeLeft.label}: ${timeLeft.time}`
+                    : timeLeft.label}
+            </span>
         </div>
     )
 }

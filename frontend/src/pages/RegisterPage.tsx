@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import { API_URL } from "../config"
 
 function RegisterPage() {
 
@@ -9,88 +10,90 @@ function RegisterPage() {
     const [password, setPassword] = useState("")
 
     const [loading, setLoading] = useState(false)
-
     const [errorMessage, setErrorMessage] = useState("")
 
     const register = async () => {
 
         setLoading(true)
-
         setErrorMessage("")
 
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/auth/register",
+                `${API_URL}/auth/register`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        email,
-                        password,
-                    }),
+                    body: JSON.stringify({ email, password }),
                 }
             )
 
             const data = await response.json()
 
             if (!response.ok) {
-
                 setErrorMessage(
-                    data.detail || "Registration failed"
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : "Registration failed"
                 )
-
                 setLoading(false)
-
                 return
             }
 
-            localStorage.setItem(
-                "token",
-                data.access_token
-            )
-
+            localStorage.setItem("token", data.access_token)
             navigate("/")
 
         } catch {
-
             setErrorMessage("Server error")
         }
 
         setLoading(false)
     }
 
+    const inputStyle = {
+        padding: "14px",
+        borderRadius: "10px",
+        border: "1px solid #d4b896",
+        backgroundColor: "#fdf6ec",
+        color: "#7a5b3e",
+        fontSize: "16px",
+        outline: "none",
+    }
+
     return (
         <div
             style={{
-                backgroundColor: "#0f172a",
+                backgroundColor: "#fff1d9",
                 minHeight: "100vh",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                color: "white",
             }}
         >
 
             <div
                 style={{
-                    width: "400px",
-                    padding: "40px",
+                    width: "420px",
+                    padding: "48px 40px",
                     borderRadius: "20px",
-                    backgroundColor: "#111827",
-                    border: "1px solid #334155",
+                    backgroundColor: "#fdf6ec",
+                    border: "1px solid #d4b896",
+                    boxShadow: "0 4px 20px rgba(122,91,62,0.1)",
                 }}
             >
 
                 <h1
                     style={{
                         textAlign: "center",
-                        marginBottom: "30px",
+                        marginBottom: "32px",
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        color: "#7a5b3e",
+                        fontSize: "32px",
                     }}
                 >
-                    Register
+                    Create Account
                 </h1>
 
                 <div
@@ -105,34 +108,16 @@ function RegisterPage() {
                         type="email"
                         placeholder="Email"
                         value={email}
-                        onChange={(e) =>
-                            setEmail(e.target.value)
-                        }
-                        style={{
-                            padding: "14px",
-                            borderRadius: "10px",
-                            border: "1px solid #334155",
-                            backgroundColor: "#1e293b",
-                            color: "white",
-                            fontSize: "16px",
-                        }}
+                        onChange={(e) => setEmail(e.target.value)}
+                        style={inputStyle}
                     />
 
                     <input
                         type="password"
                         placeholder="Password"
                         value={password}
-                        onChange={(e) =>
-                            setPassword(e.target.value)
-                        }
-                        style={{
-                            padding: "14px",
-                            borderRadius: "10px",
-                            border: "1px solid #334155",
-                            backgroundColor: "#1e293b",
-                            color: "white",
-                            fontSize: "16px",
-                        }}
+                        onChange={(e) => setPassword(e.target.value)}
+                        style={inputStyle}
                     />
 
                     <button
@@ -142,27 +127,20 @@ function RegisterPage() {
                             padding: "14px",
                             borderRadius: "10px",
                             border: "none",
-                            backgroundColor: loading
-                                ? "#475569"
-                                : "#2563eb",
-                            color: "white",
+                            backgroundColor: loading ? "#c4a882" : "#7a5b3e",
+                            color: "#fff1d9",
                             fontWeight: "bold",
-                            cursor: loading
-                                ? "not-allowed"
-                                : "pointer",
+                            cursor: loading ? "not-allowed" : "pointer",
                             fontSize: "16px",
                         }}
                     >
-                        {loading
-                            ? "Creating account..."
-                            : "Register"}
+                        {loading ? "Creating account..." : "Register"}
                     </button>
 
                     {errorMessage && (
-
                         <div
                             style={{
-                                color: "#f87171",
+                                color: "#c84444",
                                 textAlign: "center",
                                 fontSize: "15px",
                             }}
@@ -174,9 +152,10 @@ function RegisterPage() {
                     <Link
                         to="/login"
                         style={{
-                            color: "#60a5fa",
+                            color: "#a47148",
                             textAlign: "center",
                             textDecoration: "none",
+                            fontSize: "15px",
                         }}
                     >
                         Already have an account?

@@ -42,13 +42,12 @@ async def place_bid(
     result = await db.execute(
         select(Auction).where(
             Auction.id == auction_id
-        )
+        ).with_for_update()
     )
 
     auction = result.scalar_one_or_none()
 
     if not auction:
-
         raise HTTPException(
             status_code=404,
             detail="Auction not found",
@@ -56,7 +55,6 @@ async def place_bid(
 
     # prevent bidding on own auction
     if auction.seller_id == current_user.id:
-
         raise HTTPException(
             status_code=400,
             detail="You cannot bid on your own auction",
@@ -66,7 +64,6 @@ async def place_bid(
 
     # auction has not started yet
     if now < auction.start_time:
-
         raise HTTPException(
             status_code=400,
             detail="Auction has not started yet",
@@ -74,11 +71,8 @@ async def place_bid(
 
     # auction already ended
     if now > auction.end_time:
-
         auction.status = AuctionStatus.CLOSED
-
         await db.commit()
-
         raise HTTPException(
             status_code=400,
             detail="Auction is closed",
@@ -89,7 +83,6 @@ async def place_bid(
 
     # validate bid amount
     if bid_data.amount <= auction.current_price:
-
         raise HTTPException(
             status_code=400,
             detail="Bid must be higher than current price",
@@ -98,9 +91,7 @@ async def place_bid(
     # create new bid
     new_bid = Bid(
         auction_id=auction.id,
-
         bidder_id=current_user.id,
-
         amount=bid_data.amount,
     )
 
@@ -122,10 +113,14 @@ async def place_bid(
     )
 
     # websocket event
+    time_remaining = (auction.end_time - datetime.now(timezone.utc)).total_seconds()
+
     event_data = {
         "event": "NEW_BID",
         "auction_id": str(auction.id),
         "amount": float(new_bid.amount),
+        "bidder_alias": current_user.alias,
+        "time_remaining": max(0, int(time_remaining)),
     }
 
     await redis_client.publish(

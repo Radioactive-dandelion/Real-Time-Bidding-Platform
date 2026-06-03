@@ -27,6 +27,7 @@ from app.websocket.routes import router as websocket_router
 from app.services.pubsub import redis_subscriber
 
 from app.core.limiter import limiter
+from app.services.auction_closer import close_expired_auctions
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,6 +36,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
 
     asyncio.create_task(redis_subscriber())
+    asyncio.create_task(close_expired_auctions())
 
     yield
 
@@ -52,7 +54,6 @@ app.add_exception_handler(
     _rate_limit_exceeded_handler,
 )
 
-app.add_middleware(SlowAPIMiddleware)
 
 # cors
 app.add_middleware(
@@ -62,6 +63,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(SlowAPIMiddleware)
+
 
 # routers
 app.include_router(auctions.router)

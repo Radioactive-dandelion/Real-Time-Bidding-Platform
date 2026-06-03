@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { API_URL } from "../config"
 
 type Props = {
     onAuctionCreated?: () => void
@@ -14,24 +15,21 @@ function CreateAuctionForm({ onAuctionCreated }: Props) {
     const [endTime, setEndTime] = useState("")
 
     const [loading, setLoading] = useState(false)
-
     const [errorMessage, setErrorMessage] = useState("")
 
     const createAuction = async () => {
 
         setErrorMessage("")
-
         setLoading(true)
 
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/auctions/",
+                `${API_URL}/auctions/`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-
                         Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },
                     body: JSON.stringify({
@@ -39,7 +37,6 @@ function CreateAuctionForm({ onAuctionCreated }: Props) {
                         description,
                         starting_price: Number(startingPrice),
                         reserve_price: Number(reservePrice),
-
                         start_time: new Date(startTime).toISOString(),
                         end_time: new Date(endTime).toISOString(),
                     }),
@@ -47,15 +44,13 @@ function CreateAuctionForm({ onAuctionCreated }: Props) {
             )
 
             if (!response.ok) {
-
                 const error = await response.json()
-
                 setErrorMessage(
-                    JSON.stringify(error.detail, null, 2)
+                    typeof error.detail === "string"
+                        ? error.detail
+                        : "Failed to create auction"
                 )
-
                 setLoading(false)
-
                 return
             }
 
@@ -66,12 +61,9 @@ function CreateAuctionForm({ onAuctionCreated }: Props) {
             setStartTime("")
             setEndTime("")
 
-            if (onAuctionCreated) {
-                onAuctionCreated()
-            }
+            if (onAuctionCreated) onAuctionCreated()
 
-        } catch (error) {
-
+        } catch {
             setErrorMessage("Failed to create auction")
         }
 
@@ -82,35 +74,26 @@ function CreateAuctionForm({ onAuctionCreated }: Props) {
         width: "100%",
         padding: "14px",
         borderRadius: "10px",
-        border: "1px solid #334155",
-        backgroundColor: "#1e293b",
-        color: "white",
+        border: "1px solid #d4b896",
+        backgroundColor: "#fff1d9",
+        color: "#7a5b3e",
         fontSize: "16px",
         boxSizing: "border-box" as const,
+        outline: "none",
     }
 
     return (
         <div
             style={{
-                border: "1px solid #334155",
+                border: "1px solid #d4b896",
                 borderRadius: "20px",
                 padding: "40px",
-                marginBottom: "50px",
-                backgroundColor: "#0f172a",
-                maxWidth: "900px",
-                margin: "0 auto 50px auto",
+                maxWidth: "600px",
+                margin: "0 auto",
+                backgroundColor: "#fdf6ec",
+                boxShadow: "0 4px 20px rgba(122,91,62,0.1)",
             }}
         >
-
-            <h2
-                style={{
-                    textAlign: "center",
-                    marginBottom: "30px",
-                    fontSize: "36px",
-                }}
-            >
-                Create Auction
-            </h2>
 
             <div
                 style={{
@@ -150,6 +133,9 @@ function CreateAuctionForm({ onAuctionCreated }: Props) {
                     style={inputStyle}
                 />
 
+                <label style={{ color: "#a47148", fontSize: "14px", marginBottom: "-8px" }}>
+                    Start Time
+                </label>
                 <input
                     type="datetime-local"
                     value={startTime}
@@ -157,6 +143,9 @@ function CreateAuctionForm({ onAuctionCreated }: Props) {
                     style={inputStyle}
                 />
 
+                <label style={{ color: "#a47148", fontSize: "14px", marginBottom: "-8px" }}>
+                    End Time
+                </label>
                 <input
                     type="datetime-local"
                     value={endTime}
@@ -172,32 +161,25 @@ function CreateAuctionForm({ onAuctionCreated }: Props) {
                         borderRadius: "10px",
                         border: "none",
                         cursor: loading ? "not-allowed" : "pointer",
-                        backgroundColor: loading
-                            ? "#475569"
-                            : "#2563eb",
-
-                        color: "white",
+                        backgroundColor: loading ? "#c4a882" : "#7a5b3e",
+                        color: "#fff1d9",
                         fontWeight: "bold",
                         fontSize: "16px",
-                        marginTop: "10px",
+                        marginTop: "8px",
                     }}
                 >
-                    {loading
-                        ? "Creating..."
-                        : "Create Auction"}
+                    {loading ? "Creating..." : "Create Auction"}
                 </button>
 
                 {errorMessage && (
-
                     <div
                         style={{
-                            marginTop: "20px",
-                            color: "#f87171",
-                            backgroundColor: "#450a0a",
-                            padding: "16px",
+                            color: "#c84444",
+                            backgroundColor: "#f9e8e8",
+                            padding: "14px",
                             borderRadius: "10px",
-                            whiteSpace: "pre-wrap",
                             fontSize: "14px",
+                            border: "1px solid #d4a0a0",
                         }}
                     >
                         {errorMessage}

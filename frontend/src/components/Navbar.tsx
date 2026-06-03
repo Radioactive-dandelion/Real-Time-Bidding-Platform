@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"
+import { LogOut } from "lucide-react"
 
 function Navbar() {
 
@@ -7,33 +8,39 @@ function Navbar() {
     const token = localStorage.getItem("token")
 
     const handleLogout = () => {
-
         localStorage.removeItem("token")
-
         navigate("/login")
+    }
+
+    const linkStyle = {
+        color: "#fff1d9",
+        textDecoration: "none",
+        fontSize: "15px",
+        opacity: 0.85,
     }
 
     return (
         <div
             style={{
                 width: "100%",
-                padding: "20px 40px",
-                backgroundColor: "#111827",
-                borderBottom: "1px solid #334155",
+                padding: "18px 40px",
+                backgroundColor: "#7a5b3e",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                boxSizing: "border-box",
+                boxSizing: "border-box" as const,
             }}
         >
 
             <Link
                 to="/"
                 style={{
-                    color: "white",
+                    color: "#fff1d9",
                     textDecoration: "none",
-                    fontSize: "28px",
-                    fontWeight: "bold",
+                    fontSize: "24px",
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontWeight: "700",
+                    letterSpacing: "0.5px",
                 }}
             >
                 Auction Platform
@@ -42,75 +49,40 @@ function Navbar() {
             <div
                 style={{
                     display: "flex",
-                    gap: "20px",
+                    gap: "24px",
                     alignItems: "center",
                 }}
             >
 
                 {!token ? (
                     <>
-
-                        <Link
-                            to="/login"
-                            style={{
-                                color: "#60a5fa",
-                                textDecoration: "none",
-                                fontSize: "18px",
-                            }}
-                        >
-                            Login
-                        </Link>
-
-                        <Link
-                            to="/register"
-                            style={{
-                                color: "#60a5fa",
-                                textDecoration: "none",
-                                fontSize: "18px",
-                            }}
-                        >
-                            Register
-                        </Link>
-
+                        <Link to="/login" style={linkStyle}>Login</Link>
+                        <Link to="/register" style={linkStyle}>Register</Link>
                     </>
                 ) : (
                     <>
-
-                        <Link
-                            to="/settings/2fa"
-                            style={{
-                                color: "#94a3b8",
-                                textDecoration: "none",
-                                fontSize: "16px",
-                            }}
-                        >
-                            2FA Settings
-                        </Link>
-
-                        <div
-                            style={{
-                                color: "#4ade80",
-                                fontSize: "16px",
-                            }}
-                        >
-                            Logged in
-                        </div>
+                        <Link to="/history" style={linkStyle}>History</Link>
+                        <Link to="/create-auction" style={linkStyle}>Create Auction</Link>
+                        <Link to="/settings/2fa" style={linkStyle}>2FA Settings</Link>
 
                         <button
                             onClick={handleLogout}
                             style={{
-                                padding: "10px 18px",
-                                borderRadius: "10px",
-                                border: "none",
-                                backgroundColor: "#dc2626",
-                                color: "white",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "8px 16px",
+                                borderRadius: "8px",
+                                border: "1px solid rgba(255,241,217,0.4)",
+                                backgroundColor: "transparent",
+                                color: "#fff1d9",
                                 cursor: "pointer",
-                                fontWeight: "bold",
+                                fontSize: "14px",
                             }}
                         >
+                            <LogOut size={16} />
                             Logout
                         </button>
-
                     </>
                 )}
 

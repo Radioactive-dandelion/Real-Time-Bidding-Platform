@@ -5,9 +5,12 @@ import AuctionDetailPage from "./pages/AuctionDetailPage"
 import LoginPage from "./pages/LoginPage"
 import RegisterPage from "./pages/RegisterPage"
 import TwoFactorSetupPage from "./pages/TwoFactorSetupPage"
+import CreateAuctionPage from "./pages/CreateAuctionPage"
+import EditAuctionPage from "./pages/EditAuctionPage"
 
 import Navbar from "./components/Navbar"
 import ProtectedRoute from "./components/ProtectedRoute"
+import HistoryPage from "./pages/HistoryPage"
 
 function App() {
 
@@ -50,6 +53,33 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+
+                <Route
+                    path="/create-auction"
+                    element={
+                        <ProtectedRoute>
+                            <CreateAuctionPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/auction/:id/edit"
+                    element={
+                        <ProtectedRoute>
+                            <EditAuctionPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+    path="/history"
+    element={
+        <ProtectedRoute>
+            <HistoryPage />
+        </ProtectedRoute>
+    }
+/>
 
             </Routes>
 

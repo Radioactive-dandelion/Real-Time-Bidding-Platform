@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import { API_URL } from "../config"
 
 function LoginPage() {
 
@@ -22,13 +23,12 @@ function LoginPage() {
 
         try {
 
-            // бэкенд ждёт form data, не JSON
             const formData = new URLSearchParams()
             formData.append("username", email)
             formData.append("password", password)
 
             const response = await fetch(
-                "http://127.0.0.1:8000/auth/login",
+                `${API_URL}/auth/login`,
                 {
                     method: "POST",
                     headers: {
@@ -42,16 +42,15 @@ function LoginPage() {
 
             if (!response.ok) {
                 setErrorMessage(
-    typeof data.detail === "string"
-        ? data.detail
-        : "Login failed"
-)
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : "Login failed"
+                )
                 setLoading(false)
                 return
             }
 
             if (data.requires_2fa) {
-                // первый шаг прошёл — показываем поле для кода
                 setTempToken(data.temp_token)
                 setRequires2fa(true)
                 setLoading(false)
@@ -71,12 +70,12 @@ function LoginPage() {
     const validate2fa = async () => {
 
         setLoading(true)
-        
+        setErrorMessage("")
 
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/auth/2fa/validate",
+                `${API_URL}/auth/2fa/validate`,
                 {
                     method: "POST",
                     headers: {
@@ -93,10 +92,10 @@ function LoginPage() {
 
             if (!response.ok) {
                 setErrorMessage(
-    typeof data.detail === "string"
-        ? data.detail
-        : "Invalid code"
-)
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : "Invalid code"
+                )
                 setLoading(false)
                 return
             }
@@ -114,19 +113,20 @@ function LoginPage() {
     const inputStyle = {
         padding: "14px",
         borderRadius: "10px",
-        border: "1px solid #334155",
-        backgroundColor: "#1e293b",
-        color: "white",
+        border: "1px solid #d4b896",
+        backgroundColor: "#fdf6ec",
+        color: "#7a5b3e",
         fontSize: "16px",
+        outline: "none",
     }
 
     const buttonStyle = (disabled: boolean) => ({
         padding: "14px",
         borderRadius: "10px",
         border: "none",
-        backgroundColor: disabled ? "#475569" : "#2563eb",
-        color: "white",
-        fontWeight: "bold",
+        backgroundColor: disabled ? "#c4a882" : "#7a5b3e",
+        color: "#fff1d9",
+        fontWeight: "bold" as const,
         cursor: disabled ? "not-allowed" : "pointer",
         fontSize: "16px",
     })
@@ -134,32 +134,35 @@ function LoginPage() {
     return (
         <div
             style={{
-                backgroundColor: "#0f172a",
+                backgroundColor: "#fff1d9",
                 minHeight: "100vh",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                color: "white",
             }}
         >
 
             <div
                 style={{
-                    width: "400px",
-                    padding: "40px",
+                    width: "420px",
+                    padding: "48px 40px",
                     borderRadius: "20px",
-                    backgroundColor: "#111827",
-                    border: "1px solid #334155",
+                    backgroundColor: "#fdf6ec",
+                    border: "1px solid #d4b896",
+                    boxShadow: "0 4px 20px rgba(122,91,62,0.1)",
                 }}
             >
 
                 <h1
                     style={{
                         textAlign: "center",
-                        marginBottom: "30px",
+                        marginBottom: "32px",
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        color: "#7a5b3e",
+                        fontSize: "32px",
                     }}
                 >
-                    {requires2fa ? "Two-Factor Auth" : "Login"}
+                    {requires2fa ? "Two-Factor Auth" : "Welcome Back"}
                 </h1>
 
                 <div
@@ -199,9 +202,10 @@ function LoginPage() {
                             <Link
                                 to="/register"
                                 style={{
-                                    color: "#60a5fa",
+                                    color: "#a47148",
                                     textAlign: "center",
                                     textDecoration: "none",
+                                    fontSize: "15px",
                                 }}
                             >
                                 Create account
@@ -211,9 +215,10 @@ function LoginPage() {
                         <>
                             <p
                                 style={{
-                                    color: "#94a3b8",
+                                    color: "#a47148",
                                     textAlign: "center",
                                     margin: "0",
+                                    fontSize: "15px",
                                 }}
                             >
                                 Enter the 6-digit code from your authenticator app
@@ -228,8 +233,8 @@ function LoginPage() {
                                 style={{
                                     ...inputStyle,
                                     textAlign: "center",
-                                    fontSize: "24px",
-                                    letterSpacing: "8px",
+                                    fontSize: "28px",
+                                    letterSpacing: "10px",
                                 }}
                             />
 
@@ -251,8 +256,8 @@ function LoginPage() {
                                 style={{
                                     ...buttonStyle(false),
                                     backgroundColor: "transparent",
-                                    border: "1px solid #334155",
-                                    color: "#94a3b8",
+                                    border: "1px solid #d4b896",
+                                    color: "#a47148",
                                 }}
                             >
                                 Back
@@ -263,7 +268,7 @@ function LoginPage() {
                     {errorMessage && (
                         <div
                             style={{
-                                color: "#f87171",
+                                color: "#c84444",
                                 textAlign: "center",
                                 fontSize: "15px",
                             }}
