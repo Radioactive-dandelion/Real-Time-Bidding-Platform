@@ -29,6 +29,7 @@ from app.services.pubsub import redis_subscriber
 from app.core.limiter import limiter
 from app.services.auction_closer import close_expired_auctions
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
@@ -54,18 +55,20 @@ app.add_exception_handler(
     _rate_limit_exceeded_handler,
 )
 
-
 # cors
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://real-time-bidding-platform-seven.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.add_middleware(SlowAPIMiddleware)
-
 
 # routers
 app.include_router(auctions.router)
