@@ -249,7 +249,7 @@ function AuctionDetailPage() {
                             >
                                 Winner determined
                             </div>
-                        ) : auction.current_price < auction.reserve_price ? (
+                        ) : Number(auction.current_price) < Number(auction.reserve_price) ? (
                             <div
                                 style={{
                                     color: "#a03030",
