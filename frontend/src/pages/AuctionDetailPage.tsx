@@ -10,6 +10,7 @@ type Auction = {
     title: string
     description: string
     current_price: number
+    reserve_price: number
     status: string
     start_time: string
     end_time: string
@@ -166,6 +167,16 @@ function AuctionDetailPage() {
                 >
                     ${auction.current_price}
                 </div>
+
+                <div
+    style={{
+        fontSize: "14px",
+        color: "#a47148",
+        marginBottom: "12px",
+    }}
+>
+    Reserve price: ${auction.reserve_price}
+</div>
 
                 <div
                     style={{
