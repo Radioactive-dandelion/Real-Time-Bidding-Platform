@@ -25,7 +25,6 @@ function AuctionDetailPage() {
     const [auction, setAuction] = useState<Auction | null>(null)
     const [loading, setLoading] = useState(true)
     const [winnerId, setWinnerId] = useState<string | null>(null)
-    const [reserveMet, setReserveMet] = useState<boolean | null>(null)
 
     useEffect(() => {
 
@@ -61,7 +60,6 @@ function AuctionDetailPage() {
 
             if (data.event === "AUCTION_CLOSED") {
                 setWinnerId(data.winner_id)
-                setReserveMet(data.reserve_met)
                 setAuction((prev) => {
                     if (!prev) return prev
                     return {
@@ -161,7 +159,7 @@ function AuctionDetailPage() {
                     style={{
                         fontSize: "42px",
                         fontWeight: "700",
-                        marginBottom: "12px",
+                        marginBottom: "8px",
                         fontFamily: "'Playfair Display', Georgia, serif",
                     }}
                 >
@@ -169,14 +167,14 @@ function AuctionDetailPage() {
                 </div>
 
                 <div
-    style={{
-        fontSize: "14px",
-        color: "#a47148",
-        marginBottom: "12px",
-    }}
->
-    Reserve price: ${auction.reserve_price}
-</div>
+                    style={{
+                        fontSize: "14px",
+                        color: "#a47148",
+                        marginBottom: "12px",
+                    }}
+                >
+                    Reserve price: ${auction.reserve_price}
+                </div>
 
                 <div
                     style={{
@@ -251,7 +249,7 @@ function AuctionDetailPage() {
                             >
                                 Winner determined
                             </div>
-                        ) : reserveMet === false ? (
+                        ) : auction.current_price < auction.reserve_price ? (
                             <div
                                 style={{
                                     color: "#a03030",
