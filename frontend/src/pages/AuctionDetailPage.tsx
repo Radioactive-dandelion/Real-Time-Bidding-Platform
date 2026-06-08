@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { API_URL, WS_URL } from "../config"
 
 import BidForm from "../components/BidForm"
@@ -19,10 +19,12 @@ type Auction = {
 function AuctionDetailPage() {
 
     const { id } = useParams()
+    const navigate = useNavigate()
 
     const [auction, setAuction] = useState<Auction | null>(null)
     const [loading, setLoading] = useState(true)
     const [winnerId, setWinnerId] = useState<string | null>(null)
+    const [reserveMet, setReserveMet] = useState<boolean | null>(null)
 
     useEffect(() => {
 
@@ -58,6 +60,7 @@ function AuctionDetailPage() {
 
             if (data.event === "AUCTION_CLOSED") {
                 setWinnerId(data.winner_id)
+                setReserveMet(data.reserve_met)
                 setAuction((prev) => {
                     if (!prev) return prev
                     return {
@@ -177,13 +180,29 @@ function AuctionDetailPage() {
                     {auction.status}
                 </div>
 
-                <div style={{ marginBottom: "32px" }}>
+                <div style={{ marginBottom: "16px" }}>
                     <CountdownTimer
                         endTime={auction.end_time}
                         startTime={auction.start_time}
                         status={auction.status}
                     />
                 </div>
+
+                <button
+                    onClick={() => navigate(`/auction/${id}/bids`)}
+                    style={{
+                        padding: "8px 18px",
+                        borderRadius: "8px",
+                        border: "1px solid #d4b896",
+                        backgroundColor: "transparent",
+                        color: "#a47148",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        marginBottom: "24px",
+                    }}
+                >
+                    View Bid History
+                </button>
 
                 {auction.status === "active" ? (
 
@@ -220,6 +239,19 @@ function AuctionDetailPage() {
                                 }}
                             >
                                 Winner determined
+                            </div>
+                        ) : reserveMet === false ? (
+                            <div
+                                style={{
+                                    color: "#a03030",
+                                    fontSize: "15px",
+                                    padding: "12px",
+                                    backgroundColor: "#f9e8e8",
+                                    borderRadius: "10px",
+                                    border: "1px solid #d4a0a0",
+                                }}
+                            >
+                                Reserve price was not met — auction failed
                             </div>
                         ) : (
                             <div

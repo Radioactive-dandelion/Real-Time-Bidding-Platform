@@ -11,6 +11,7 @@ import EditAuctionPage from "./pages/EditAuctionPage"
 import Navbar from "./components/Navbar"
 import ProtectedRoute from "./components/ProtectedRoute"
 import HistoryPage from "./pages/HistoryPage"
+import BidHistoryPage from "./pages/BidHistoryPage"
 
 function App() {
 
@@ -73,12 +74,17 @@ function App() {
                 />
 
                 <Route
-    path="/history"
-    element={
-        <ProtectedRoute>
-            <HistoryPage />
-        </ProtectedRoute>
-    }
+                    path="/history"
+                    element={
+                        <ProtectedRoute>
+                            <HistoryPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+    path="/auction/:id/bids"
+    element={<BidHistoryPage />}
 />
 
             </Routes>

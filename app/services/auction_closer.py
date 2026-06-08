@@ -60,19 +60,30 @@ async def close_expired_auctions():
 
                     winning_bid = bid_result.scalar_one_or_none()
 
-                    if winning_bid:
+                    if winning_bid and winning_bid.amount >= auction.reserve_price:
+                        # Резервная цена достигнута — есть победитель
                         auction.winner_id = winning_bid.bidder_id
-                        print(f"Auction closed: {auction.title} — winner: {winning_bid.bidder_id}")
-                    else:
-                        print(f"Auction closed: {auction.title} — no bids")
+                        print(f"Auction closed: {auction.title} — winner found, amount: {winning_bid.amount}")
 
-                    # Отправляем AUCTION_CLOSED событие через Redis pub/sub
-                    event = {
-                        "event": "AUCTION_CLOSED",
-                        "auction_id": str(auction.id),
-                        "winner_id": str(auction.winner_id) if auction.winner_id else None,
-                        "final_price": float(auction.current_price),
-                    }
+                        event = {
+                            "event": "AUCTION_CLOSED",
+                            "auction_id": str(auction.id),
+                            "winner_id": str(auction.winner_id),
+                            "final_price": float(auction.current_price),
+                            "reserve_met": True,
+                        }
+
+                    else:
+                        # Резервная цена не достигнута — аукцион провален
+                        print(f"Auction closed: {auction.title} — reserve price not met")
+
+                        event = {
+                            "event": "AUCTION_CLOSED",
+                            "auction_id": str(auction.id),
+                            "winner_id": None,
+                            "final_price": float(auction.current_price),
+                            "reserve_met": False,
+                        }
 
                     await redis_client.publish(
                         f"auction:{auction.id}",

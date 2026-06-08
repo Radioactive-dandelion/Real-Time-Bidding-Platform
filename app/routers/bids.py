@@ -129,3 +129,22 @@ async def place_bid(
     )
 
     return new_bid
+
+@router.get(
+    "/auctions/{auction_id}/bids",
+    response_model=list[BidResponse],
+)
+async def get_auction_bids(
+    auction_id: UUID,
+    db: AsyncSession = Depends(get_db),
+):
+
+    result = await db.execute(
+        select(Bid)
+        .where(Bid.auction_id == auction_id)
+        .order_by(Bid.amount.desc())
+    )
+
+    bids = result.scalars().all()
+
+    return bids
