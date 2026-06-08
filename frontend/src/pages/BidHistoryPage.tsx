@@ -21,10 +21,16 @@ function BidHistoryPage() {
 
         if (!id) return
 
-        fetch(`${API_URL}/auctions/${id}/bids`)
+        const token = localStorage.getItem("token")
+
+        fetch(`${API_URL}/auctions/${id}/bids`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => {
-                setBids(data)
+                setBids(Array.isArray(data) ? data : [])
                 setLoading(false)
             })
 
@@ -145,7 +151,7 @@ function BidHistoryPage() {
                             style={{
                                 fontSize: "13px",
                                 color: "#a47148",
-                                textAlign: "right",
+                                textAlign: "right" as const,
                             }}
                         >
                             {new Date(bid.created_at).toLocaleString()}
